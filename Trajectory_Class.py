@@ -9,7 +9,7 @@ class Trajectory(om.ExplicitComponent):
     def setup(self):
 
         # Time vector as an input
-        self.add_input("ts", val = np.zeros(6))
+        self.add_input("ts", val = np.zeros(10))
 
         # delta-v magnitudes  as an output
         self.add_output("delta_v", val = 0.0)
