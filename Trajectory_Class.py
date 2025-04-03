@@ -1,4 +1,8 @@
 import numpy as np
+import pandas as pd
+import sys
+sys.path.append(r"C:\\Users\\18475\\Desktop\\Projects\\GMAT\\api")
+from load_gmat import gmat
 import openmdao.api as om
 
 class Trajectory(om.ExplicitComponent):
@@ -9,7 +13,7 @@ class Trajectory(om.ExplicitComponent):
     def setup(self):
 
         # Time vector as an input
-        self.add_input("ts", val = np.zeros(10)) #each burn time
+        self.add_input("ts", val = np.zeros(5)) #each burn time
 
         # delta-v magnitudes  as an output
         self.add_output("delta_v", val = 0.0)
@@ -23,21 +27,34 @@ class Trajectory(om.ExplicitComponent):
         the total required delta_v
         """
         ts = inputs['ts']
-        n = len(ts)
 
-        delta_vs = np.zeros(n,3)
         """
         Call GMAT to calculate the delta-v vectors
         delta-vs = [delta_v1, delta_v2, ..., delta_vn]
         """
-        
+        # Load the GMAT Script
+        gmat.LoadScript('C:\\Users\\18475\\Desktop\\Projects\\GMAT\\missions\\Pathfinder_Test.script')
+
+        gmat.GetObject('EarthWait').SetField("Value", 10)
+        gmat.GetObject('EMDeltaT').SetField("Value", 200)
+        gmat.GetObject('MarsWait').SetField("Value", 100)
+        gmat.GetObject('EMDeltaT').SetField("Value", 200)
+
+        # Run GMAT Script
+        gmat.RunScript()
+
+        # Extract Delta-V Vectors
+        report_path = "C:\\Users\\18475\\Desktop\\Projects\\GMAT\\output\\DeltaVs.txt"
+        df = pd.read_csv(report_path, sep="\t", header=None) 
+        last_row = df.iloc[-1]
+        delta_vs_flat = np.array([float(x) for dv in last_row for x in dv.split()])
+        burns = delta_vs_flat.reshape(5, 3)
+
         # Calculate the magnitudes of the delta_v vectors
-        delta_vs_mag = np.zeros(n)
-        for i in range(n):
-            delta_vs_mag[i] = np.linalg.norm(delta_vs[i,:])
+        burn_mags = np.linalg.norm(burns, axis=1)
 
         # Calculate the sum of the delta_v magnitudes
-        delta_v = sum(delta_vs_mag)
+        delta_v = sum(burn_mags)
         outputs['delta_v'] = delta_v
 
 class Fuel_Burn(om.ExplicitComponent):
