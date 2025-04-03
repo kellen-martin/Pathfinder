@@ -48,7 +48,7 @@ class Trajectory(om.ExplicitComponent):
         df = pd.read_csv(report_path, sep="\t", header=None) 
         last_row = df.iloc[-1]
         delta_vs_flat = np.array([float(x) for dv in last_row for x in dv.split()])
-        burns = delta_vs_flat.reshape(5, 3)
+        burns = delta_vs_flat.reshape(6, 3)
 
         # Calculate the magnitudes of the delta_v vectors
         burn_mags = np.linalg.norm(burns, axis=1)
