@@ -100,17 +100,21 @@ if __name__ == "__main__":
     """
     Test of Trajectory Component
     """
+    
     Traj_prob = om.Problem()
     Traj_prob.model.add_subsystem("Trajectory", Trajectory(), promotes=['*'])
-
+ 
     Traj_prob.driver = om.ScipyOptimizeDriver()
     Traj_prob.driver.options["optimizer"] = "SLSQP"
-    Traj_prob.model.set_input_defaults("ts",val=np.array([10, 50, 100, 200]))
-    Traj_prob.model.add_design_var("ts", lower=0, upper=10000)
-    Traj_prob.model.add_objective('delta_v')
-
     Traj_prob.setup()
-    Traj_prob.run_driver()
 
+    Traj_prob.set_val('ts', np.array([100, 200, 150, 200]))
+    Traj_prob.run_model()
+
+    delta_v = Traj_prob.get_val('delta_v')
+    print(delta_v)
+
+
+ 
 
 
