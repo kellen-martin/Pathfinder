@@ -139,8 +139,8 @@ class RadiShield(om.ExplicitComponent):
         m_d = inputs['m_d']
         m_s = inputs['m_s']
         t = inputs['t']
-        t_transit = abs(t[1]-t[0])+abs(t[4]-t[3]) #Earth to Mars Transition time
-        t_mars = abs(t[3]-t[1]) #Stay Time in Mars
+        t_transit = (abs(t[1]-t[0])+abs(t[4]-t[3]))/365 #Earth to Mars Transition time
+        t_mars = abs(t[3]-t[1])/365 #Stay Time in Mars
         D0=660*t_transit+634*t_mars #Original Radiation Amount
         myu=2.025
         p=0.97 #kg/m^3
