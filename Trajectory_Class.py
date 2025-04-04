@@ -13,7 +13,8 @@ class Trajectory(om.ExplicitComponent):
     def setup(self):
 
         # Time vector as an input
-        self.add_input("ts", val = np.zeros(5)) #each burn time
+        # [EarthWait EMDeltaT MarsWait MEDeltaT]
+        self.add_input("ts", val = np.zeros(4))
 
         # delta-v magnitudes  as an output
         self.add_output("delta_v", val = 0.0)
@@ -35,10 +36,16 @@ class Trajectory(om.ExplicitComponent):
         # Load the GMAT Script
         gmat.LoadScript('C:\\Users\\18475\\Desktop\\Projects\\GMAT\\missions\\Pathfinder_Test.script')
 
-        gmat.GetObject('EarthWait').SetField("Value", 10)
-        gmat.GetObject('EMDeltaT').SetField("Value", 200)
-        gmat.GetObject('MarsWait').SetField("Value", 100)
-        gmat.GetObject('EMDeltaT').SetField("Value", 200)
+        # Set Times in GMAT
+        start_date = 30770 # UTCMod Julian Date April 4, 2025
+        EarthWait = ts[0] + start_date
+        EMDeltaT = ts[1]
+        MarsWait = ts[2]
+        MEDeltaT = ts[3]
+        gmat.GetObject('Pathfinder').SetField("Epoch", str(EarthWait))
+        gmat.GetObject('EMDeltaT').SetField("Value", EMDeltaT)
+        gmat.GetObject('MarsWait').SetField("Value", MarsWait)
+        gmat.GetObject('MEDeltaT').SetField("Value", MEDeltaT)
 
         # Run GMAT Script
         gmat.RunScript()
@@ -88,3 +95,22 @@ class Fuel_Burn(om.ExplicitComponent):
         # Compute fuel burn
         F = m_d*(np.exp(delta_v/(Isp*g0)) - 1)
         outputs['F'] = F
+
+if __name__ == "__main__":
+    """
+    Test of Trajectory Component
+    """
+    Traj_prob = om.Problem()
+    Traj_prob.model.add_subsystem("Trajectory", Trajectory(), promotes=['*'])
+
+    Traj_prob.driver = om.ScipyOptimizeDriver()
+    Traj_prob.driver.options["optimizer"] = "SLSQP"
+    Traj_prob.model.set_input_defaults("ts",val=np.array([10, 50, 100, 200]))
+    Traj_prob.model.add_design_var("ts", lower=0, upper=10000)
+    Traj_prob.model.add_objective('delta_v')
+
+    Traj_prob.setup()
+    Traj_prob.run_driver()
+
+
+
