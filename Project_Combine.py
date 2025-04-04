@@ -5,7 +5,25 @@ sys.path.append(r"C:\\Users\\18475\\Desktop\\Projects\\GMAT\\api")
 from load_gmat import gmat
 import openmdao.api as om
 
-#This is simillar as IDF code structure
+#This is similar as IDF code structure
+
+#Dry_mass Block
+class Dry_mass(om.ExplicitComponent):
+    def setup(self):
+        #set object function varaible here 
+        self.add_input('m_s', val=0.0) #Shield Mass
+        self.add_output('m_d', val=0.0) #Dry Mass
+
+    def setup_partials(self):
+        # Finite difference between all partials. *can use exactly if want
+        self.declare_partials("*", "*", method="fd")
+    
+    def compute(self, inputs, outputs):
+        #set the input
+        m_s = inputs['m_s']
+        m_hull=160000.0 #kg
+       
+        outputs['m_d'] = m_hull+m_s
 
 #Trajectory Block
 class Trajectory(om.ExplicitComponent):
@@ -136,6 +154,13 @@ class ModelGroup(om.Group):
 
     def setup(self):
         #add system that is not in loop
+        
+        self.add_subsystem(
+            "Drym",
+            Dry_mass(),
+            promotes=["*"],
+        )
+        
         self.add_subsystem(
             "Traj",
             Trajectory(),
