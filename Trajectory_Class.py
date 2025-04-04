@@ -49,6 +49,7 @@ class Trajectory(om.ExplicitComponent):
 
         # Run GMAT Script
         gmat.RunScript()
+        print("GMAT run completed")
 
         # Extract Delta-V Vectors
         report_path = "C:\\Users\\18475\\Desktop\\Projects\\GMAT\\output\\DeltaVs.txt"
@@ -106,13 +107,23 @@ if __name__ == "__main__":
  
     Traj_prob.driver = om.ScipyOptimizeDriver()
     Traj_prob.driver.options["optimizer"] = "SLSQP"
-    Traj_prob.setup()
+    Traj_prob.driver.options["debug_print"] = ["nl_cons", "objs", "desvars"]
 
-    Traj_prob.set_val('ts', np.array([100, 200, 150, 200]))
+    Traj_prob.model.add_design_var("ts", lower=0)
+    Traj_prob.model.add_objective('delta_v')
+    Traj_prob.model.set_input_defaults("ts",val=np.array([100, 200, 150, 200]))
+    Traj_prob.setup()
+    Traj_prob.set_solver_print(level=0)
+    Traj_prob.run_driver()
+
+    # Traj_prob.set_val('ts', np.array([100, 200, 150, 200]))
+    
+    """
     Traj_prob.run_model()
 
     delta_v = Traj_prob.get_val('delta_v')
     print(delta_v)
+    """
 
 
  
