@@ -169,7 +169,7 @@ prob.driver.options["debug_print"] = ["nl_cons", "objs", "desvars"]
 #set the grobal input
 prob.model.set_input_defaults("m_s",val=0.0)
 prob.model.set_input_defaults("m_d",val=0.0)
-prob.model.set_input_defaults("ts",val=np.zeros(5))
+prob.model.set_input_defaults("ts",val=np.array([100, 200, 150, 200]))
 prob.model.set_input_defaults("delta_v",val=0.0)
 
 #set the design varaibles, objectives, constrints
