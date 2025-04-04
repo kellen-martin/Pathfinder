@@ -16,7 +16,8 @@ class Trajectory(om.ExplicitComponent):
     def setup(self):
 
         # Time vector as an input
-        self.add_input("ts", val = np.zeros(5)) #each burn time
+        # [EarthWait EMDeltaT MarsWait MEDeltaT]
+        self.add_input("ts", val = np.zeros(4))
 
         # delta-v magnitudes  as an output
         self.add_output("delta_v", val = 0.0)
@@ -38,10 +39,16 @@ class Trajectory(om.ExplicitComponent):
         # Load the GMAT Script
         gmat.LoadScript('C:\\Users\\18475\\Desktop\\Projects\\GMAT\\missions\\Pathfinder_Test.script')
 
-        gmat.GetObject('EarthWait').SetField("Value", 10)
-        gmat.GetObject('EMDeltaT').SetField("Value", 200)
-        gmat.GetObject('MarsWait').SetField("Value", 100)
-        gmat.GetObject('EMDeltaT').SetField("Value", 200)
+        # Set Times in GMAT
+        start_date = 30770 # UTCMod Julian Date April 4, 2025
+        EarthWait = ts[0] + start_date
+        EMDeltaT = ts[1]
+        MarsWait = ts[2]
+        MEDeltaT = ts[3]
+        gmat.GetObject('Pathfinder').SetField("Epoch", str(EarthWait))
+        gmat.GetObject('EMDeltaT').SetField("Value", EMDeltaT)
+        gmat.GetObject('MarsWait').SetField("Value", MarsWait)
+        gmat.GetObject('MEDeltaT').SetField("Value", MEDeltaT)
 
         # Run GMAT Script
         gmat.RunScript()
