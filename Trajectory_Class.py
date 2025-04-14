@@ -4,6 +4,8 @@ import sys
 sys.path.append(r"C:\\Users\\18475\\Desktop\\Projects\\GMAT\\api")
 from load_gmat import gmat
 import openmdao.api as om
+import time as t
+
 
 class Trajectory(om.ExplicitComponent):
     """
@@ -14,7 +16,8 @@ class Trajectory(om.ExplicitComponent):
 
         # Time vector as an input
         # [EarthWait EMDeltaT MarsWait MEDeltaT]
-        self.add_input("ts", val = np.zeros(4))
+        self.add_input("ts", val = np.zeros(3))
+        self.add_input("t_start", val=0)
 
         # delta-v magnitudes  as an output
         self.add_output("delta_v", val = 0.0)
@@ -28,28 +31,32 @@ class Trajectory(om.ExplicitComponent):
         the total required delta_v
         """
         ts = inputs['ts']
-
+        t_start = inputs['t_start']
         """
         Call GMAT to calculate the delta-v vectors
         delta-vs = [delta_v1, delta_v2, ..., delta_vn]
         """
+    
         # Load the GMAT Script
-        gmat.LoadScript('C:\\Users\\18475\\Desktop\\Projects\\GMAT\\missions\\Pathfinder_Test.script')
-
+        gmat.LoadScript('C:\\Users\\18475\\Desktop\\Projects\\GMAT\\missions\\Pathfinder_Test3.script')
         # Set Times in GMAT
         start_date = 30770 # UTCMod Julian Date April 4, 2025
-        EarthWait = ts[0] + start_date
-        EMDeltaT = ts[1]
-        MarsWait = ts[2]
-        MEDeltaT = ts[3]
-        gmat.GetObject('Pathfinder').SetField("Epoch", str(EarthWait))
+        EarthWait = t_start + start_date
+        EMDeltaT = ts[0]
+        MarsWait = ts[1]
+        MEDeltaT = ts[2]
+        gmat.GetObject('Pathfinder').SetField("Epoch", str(float(EarthWait)))
         gmat.GetObject('EMDeltaT').SetField("Value", EMDeltaT)
         gmat.GetObject('MarsWait').SetField("Value", MarsWait)
         gmat.GetObject('MEDeltaT').SetField("Value", MEDeltaT)
 
         # Run GMAT Script
+        print("GMAT Start")
+        t_start = t.perf_counter()
         gmat.RunScript()
-        print("GMAT run completed")
+        t_end = t.perf_counter()
+        time = (t_end - t_start)/60
+        print("GMAT run completed, Solve Time: ", time)
 
         # Extract Delta-V Vectors
         report_path = "C:\\Users\\18475\\Desktop\\Projects\\GMAT\\output\\DeltaVs.txt"
@@ -109,9 +116,11 @@ if __name__ == "__main__":
     Traj_prob.driver.options["optimizer"] = "SLSQP"
     Traj_prob.driver.options["debug_print"] = ["nl_cons", "objs", "desvars"]
 
-    Traj_prob.model.add_design_var("ts", lower=0)
+    Traj_prob.model.add_design_var("ts", lower=0, upper=2*365)
+    Traj_prob.model.add_design_var("t_start", lower=0, upper=3650)
     Traj_prob.model.add_objective('delta_v')
-    Traj_prob.model.set_input_defaults("ts",val=np.array([100, 200, 150, 200]))
+    Traj_prob.model.set_input_defaults("ts",val=np.array([208, 500, 270]))
+    Traj_prob.model.set_input_defaults("t_start",val=608.0)
     Traj_prob.setup()
     Traj_prob.set_solver_print(level=0)
     Traj_prob.run_driver()
