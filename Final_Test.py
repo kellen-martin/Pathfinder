@@ -177,7 +177,7 @@ class Fuel_Burn(om.ExplicitComponent):
 
         # Compute fuel burn
         F = m_d*(np.exp(delta_v/(Isp*g0)) - 1)
-        outputs['F'] = F -98000000
+        outputs['F'] = F
 
 
 #Shield Block
@@ -207,8 +207,7 @@ class RadiShield(om.ExplicitComponent):
         myu=2.025
         p=0.97 #kg/m^3
         As=11670 #m^3
-        outputs['Df'] = DR-D0*np.exp(-myu*(m_s/(p*As)))
-        outputs['dmass'] = 0.2*m_d-m_s
+        outputs['Df'] = abs(DR-D0*np.exp(-myu*(m_s/(p*As))))
 
 
 #circle set here
@@ -230,14 +229,14 @@ class ModelGroup(om.Group):
         )
 
         self.add_subsystem(
-            "Radi",
-            RadiShield(),
+            "Fuel",
+            Fuel_Burn(),
             promotes=["*"],
         )
 
         self.add_subsystem(
-            "Fuel",
-            Fuel_Burn(),
+            "Radi",
+            RadiShield(),
             promotes=["*"],
         )
 
@@ -256,7 +255,7 @@ prob.driver.options["debug_print"] = ["nl_cons", "objs", "desvars"]
 # prob.driver.options["print_opt_prob"] = True
 
 #set the grobal input
-prob.model.set_input_defaults("m_s",val=40000.0)
+prob.model.set_input_defaults("m_s",val=20000.0) #due to initial value is sensitive  
 prob.model.set_input_defaults("ts",val=np.array([208, 500, 270]))
 prob.model.set_input_defaults("t_start",val=608.0)
 
@@ -286,9 +285,9 @@ prob.model.add_design_var("MAB")
 prob.model.add_design_var("MDB")
 prob.model.add_design_var("EAB")
 
-prob.model.add_objective("F")
-prob.model.add_constraint("dmass", lower=0)
-prob.model.add_constraint("Df", lower=0)
+prob.model.add_objective("Df")
+prob.model.add_constraint("m_s", lower=0, upper=40000)
+prob.model.add_constraint("F", lower=0, upper=98000000)
 prob.model.add_constraint('MarsRMAG', upper=13000, lower=11000)
 prob.model.add_constraint("MarsVX", upper=0.1, lower=-0.1)
 prob.model.add_constraint("MarsVY", upper=0.1, lower=-0.1)
