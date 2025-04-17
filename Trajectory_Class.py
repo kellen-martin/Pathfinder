@@ -116,7 +116,7 @@ if __name__ == "__main__":
     Traj_prob.driver.options["optimizer"] = "SLSQP"
     Traj_prob.driver.options["debug_print"] = ["nl_cons", "objs", "desvars"]
 
-    Traj_prob.model.add_design_var("ts", lower=0, upper=2*365)
+    Traj_prob.model.add_design_var("ts", lower=10, upper=2*365)
     Traj_prob.model.add_design_var("t_start", lower=0, upper=3650)
     Traj_prob.model.add_objective('delta_v')
     Traj_prob.model.set_input_defaults("ts",val=np.array([208, 500, 270]))

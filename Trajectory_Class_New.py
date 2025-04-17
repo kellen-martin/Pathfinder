@@ -134,6 +134,7 @@ if __name__ == "__main__":
     """
     Test of Trajectory Component
     """
+    """
     # Genertate Initial Guess
     gmat.LoadScript('C:\\Users\\18475\\Desktop\\Projects\\GMAT\\missions\\Pathfinder_Test3.script')
     ts_inital = np.array([208.0, 500.0, 270.0])
@@ -166,7 +167,15 @@ if __name__ == "__main__":
     MarsArrivalBurn_Initial = burns[2,:]
     MarsDepatureBurn_Initial = burns[4,:]
     EarthArrivalBurn_Initial = burns[5,:]
+    """
 
+    # Initial Guess from last Run
+    ts_inital = np.array([248.55026636, 496.87138656, 269.94184923])
+    t_start_initial = 603.24347764
+    EarthDepartureBurn_Initial = np.array([-1.53354101,  4.81383612,  0.21110436])
+    MarsArrivalBurn_Initial = np.array([-3.82042382,  0.01523331,  0.06887896])
+    MarsDepatureBurn_Initial = np.array([ 3.76004347,  0.23218221, -1.3525757 ])
+    EarthArrivalBurn_Initial = np.array([ 1.45271153, -6.6920759 , -7.55663744])
     # Set Up Problem
     Traj_prob = om.Problem()
     Traj_prob.model.add_subsystem("Trajectory", Trajectory(), promotes=['*'])
