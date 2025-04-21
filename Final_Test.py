@@ -274,7 +274,7 @@ prob.driver.options["debug_print"] = ["nl_cons", "objs", "desvars"]
 # prob.driver.options["print_opt_prob"] = True
 
 #set the grobal input
-prob.model.set_input_defaults("m_s",val=20000.0) #due to initial value is sensitive  
+prob.model.set_input_defaults("m_s",val=40000.0)
 prob.model.set_input_defaults("ts",val=np.array([272.42149202, 422.89488847, 252.57764301]))
 prob.model.set_input_defaults("t_start",val=571.0)
 
