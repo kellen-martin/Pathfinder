@@ -287,7 +287,7 @@ prob.model.add_design_var("t_start", lower=0, upper=3650)
 
 prob.model.add_objective("Df")
 prob.model.add_constraint("m_s", lower=0, upper=40000)
-prob.model.add_constraint("F", lower=0, upper=7000000)
+prob.model.add_constraint("F", lower=0, upper=7500000)
 
 
 # Ask OpenMDAO to finite-difference across the model to compute the gradients for the optimizer
