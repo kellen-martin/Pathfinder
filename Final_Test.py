@@ -231,8 +231,8 @@ class RadiShield(om.ExplicitComponent):
         t = inputs['ts']
         t_transit = (t[0] + t[2])/365 #Earth to Mars Transition time
         t_mars = t[1]/365 #Stay Time in Mars
-        D0=660*t_transit+634*t_mars #Original Radiation Amount
-        DR=50*(t_transit+t_mars) #Limitation Radiation Amount
+        D0=660*t_transit+634*t_mars + 20*t_total*(11-t_total) #Original Radiation Amount (mSv) with SEP High Radiation Includes
+        DR= 150 #Limitation Radiation Amount (mSv) (1/4 of NASA astronaut career radiation Limit)
         myu=2.025
         p=0.97 #kg/m^3
         As=11670 #m^3
