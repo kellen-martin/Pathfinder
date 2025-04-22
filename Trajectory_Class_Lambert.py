@@ -24,8 +24,15 @@ def stumpff_c3(psi):
 def UV_Lambert_Bisect(r1_vec, r2_vec, mu, delta_t, tol=1e-4, max_iter=1000):
     r1 = np.linalg.norm(r1_vec)
     r2 = np.linalg.norm(r2_vec)
-    c_theta = np.dot(r1_vec, r2_vec) / (r1 * r2)
-    A = np.sqrt(r1 * r2 * (1 + c_theta))
+    theta = np.arccos(np.dot(r1_vec, r2_vec) / (r1 * r2))
+
+    # Auto-detect long-way using cross product
+    cross = np.cross(r1_vec, r2_vec)
+    if cross[2] < 0:  # Negative z-component means long-way (retrograde-like)
+        theta = 2 * np.pi - theta
+
+    c_theta = np.cos(theta)
+    A = np.sign(np.sin(theta)) * np.sqrt(abs(r1 * r2 * (1 + c_theta)))
 
     psi_low, psi_up = -4*np.pi**2, 4*np.pi**2
     psi = 0
