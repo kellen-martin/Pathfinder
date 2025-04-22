@@ -99,7 +99,8 @@ class Trajectory(om.ExplicitComponent):
         self.add_input("t_start", val=0)
 
         # delta-v magnitudes  as an output
-        self.add_output("delta_v", val = 0.0)
+        self.add_output("delta_v1", val = 0.0)
+        self.add_output("delta_v2", val = 0.0)
         self.add_output("EDB", val=np.zeros(3))
         self.add_output("MAB", val=np.zeros(3))
         self.add_output("MDB", val=np.zeros(3))
@@ -159,9 +160,11 @@ class Trajectory(om.ExplicitComponent):
         EAB = V_E2 - v2_E
 
         # Calculate the sum of the delta_v magnitudes
-        delta_v = np.linalg.norm(EDB) + np.linalg.norm(MAB) + np.linalg.norm(MDB) + np.linalg.norm(EAB)
+        delta_v1 = np.linalg.norm(EDB) + np.linalg.norm(MAB)
+        delta_v2 = np.linalg.norm(MDB) + np.linalg.norm(EAB)
 
-        outputs['delta_v'] = delta_v
+        outputs['delta_v1'] = delta_v1
+        outputs['delta_v2'] = delta_v2
         outputs['EDB'] = EDB
         outputs['MAB'] = MAB
         outputs['MDB'] = MDB
@@ -175,11 +178,13 @@ class Fuel_Burn(om.ExplicitComponent):
 
     def setup(self):
         # Inputs are the total delta_v and the dry mass of the s/c
-        self.add_input('delta_v', val = 0.0)
+        self.add_input('delta_v1', val = 0.0)
+        self.add_input('delta_v2', val=0.0)
         self.add_input('m_d', val = 0.0)
 
         # Output is the total fuel burn in kg 
-        self.add_output('F', val = 0.0)
+        self.add_output('F1', val = 0.0)
+        self.add_output('F2', val = 0.0)
 
     def setup_partials(self):
         self.declare_partials('*','*', method= 'fd')  
@@ -189,7 +194,8 @@ class Fuel_Burn(om.ExplicitComponent):
         Computes the required fuel burn by the equation
         F = m_d(exp(delta_v/(Isp*g0) - 1)
         """
-        delta_v = inputs['delta_v']
+        delta_v1 = inputs['delta_v1']
+        delta_v2 = inputs['delta_v2']
         m_d = inputs['m_d']
 
         # Constants
@@ -197,8 +203,10 @@ class Fuel_Burn(om.ExplicitComponent):
         Isp = 380   # [s]
 
         # Compute fuel burn
-        F = m_d*(np.exp(delta_v/(Isp*g0)) - 1)
-        outputs['F'] = F
+        F1 = m_d*(np.exp(delta_v1/(Isp*g0)) - 1)
+        F2 = m_d*(np.exp(delta_v2/(Isp*g0)) - 1)
+        outputs['F1'] = F1
+        outputs['F2'] = F2
 
 
 #Shield Block
@@ -289,8 +297,8 @@ prob.model.add_design_var("t_start", lower=0, upper=3650)
 
 prob.model.add_objective("Df")
 prob.model.add_constraint("m_s", lower=0, upper=40000)
-prob.model.add_constraint("F", lower=0, upper=7500000)
-
+prob.model.add_constraint("F1", lower=0, upper=1500000)
+prob.model.add_constraint("F2", lower=0, upper=1500000)
 
 # Ask OpenMDAO to finite-difference across the model to compute the gradients for the optimizer
 prob.model.approx_totals()
@@ -304,9 +312,17 @@ prob.run_driver()
 print("minimum found at")
 print("Shelid Mass :", prob.get_val("m_s"))
 print("Dry Mass :", prob.get_val("m_d"))
+print("T Start: ", prob.get_val("t_start"))
 print("Times :", prob.get_val("ts"))
-print("Total delta-v :", prob.get_val("delta_v"))
-print("Fuel Burn", prob.get_val("F"))
+print("Earth-Mars Leg delta-v :", prob.get_val("delta_v1"))
+print("Earth-Mars Fuel Burn", prob.get_val("F1"))
+print("Mars-Earth Leg delta-v :", prob.get_val("delta_v2"))
+print("Mars-Earth Fuel Burn", prob.get_val("F2"))
+
+print("EDB: ", prob.get_val('EDB'))
+print("MAB: ", prob.get_val('MAB'))
+print("MDB: ", prob.get_val('MDB'))
+print("EAB: ", prob.get_val('EAB'))
 
 print("minumum objective")
 print(prob.get_val("Df"))
