@@ -338,29 +338,3 @@ print("EAB: ", prob.get_val('EAB'))
 
 print("minumum objective")
 print(prob.get_val("F_total"))
-
-prob.model.set_val("m_s",val=40000.0)
-prob.model.set_val("ts",val=np.array([240, 450, 270]))
-prob.model.set_val("t_start",val=604.0)
-
-prob.setup()
-prob.run_model()
-
-print("Initial Guess")
-print("Shelid Mass :", prob.get_val("m_s"))
-print("Dry Mass :", prob.get_val("m_d"))
-print("Df: ", prob.get_val("Df"))
-print("T Start: ", prob.get_val("t_start"))
-print("Times :", prob.get_val("ts"))
-print("Earth-Mars Leg delta-v :", prob.get_val("delta_v1"))
-print("Earth-Mars Fuel Burn", prob.get_val("F1"))
-print("Mars-Earth Leg delta-v :", prob.get_val("delta_v2"))
-print("Mars-Earth Fuel Burn", prob.get_val("F2"))
-
-print("EDB: ", prob.get_val('EDB'))
-print("MAB: ", prob.get_val('MAB'))
-print("MDB: ", prob.get_val('MDB'))
-print("EAB: ", prob.get_val('EAB'))
-
-print("Objective")
-print(prob.get_val("F_total"))
