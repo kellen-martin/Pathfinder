@@ -285,65 +285,14 @@ class ModelGroup(om.Group):
 prob = om.Problem()
 prob.model = ModelGroup()
 
-#Set the optimizer
-prob.driver = om.ScipyOptimizeDriver()
-prob.driver.options["optimizer"] = "SLSQP"
-prob.driver.options["maxiter"] = 1000
-prob.driver.options["tol"] = 1e-6
-prob.driver.options["debug_print"] = ["nl_cons", "objs", "desvars"]
-# prob.driver.options["print_opt_prob"] = True
 
-#set the grobal input
-prob.model.set_input_defaults("m_s",val=40000.0)
-prob.model.set_input_defaults("ts",val=np.array([272.42149202, 422.89488847, 252.57764301]))
-prob.model.set_input_defaults("t_start",val=571.0)
-
-
-#set the design varaibles, objectives, constrints
-prob.model.add_design_var("m_s", lower=0, upper=200000)
-#prob.model.add_design_var("m_d", lower=0, upper=200000)
-prob.model.add_design_var("ts", lower=50, upper=2*365)
-prob.model.add_design_var("t_start", lower=0, upper=3650)
-
-prob.model.add_objective("F_total")
-prob.model.add_constraint("Df", equals=0)
-prob.model.add_constraint("m_s", lower=0, upper=40000)
-prob.model.add_constraint("F1", upper=1500000)
-prob.model.add_constraint("F2", upper=1500000)
-
-# Ask OpenMDAO to finite-difference across the model to compute the gradients for the optimizer
-prob.model.approx_totals()
 
 prob.setup()
-prob.set_solver_print(level=0)
-
-
-prob.run_driver()
-
-print("minimum found at")
-print("Shelid Mass :", prob.get_val("m_s"))
-print("Dry Mass :", prob.get_val("m_d"))
-print("Df: ", prob.get_val("Df"))
-print("T Start: ", prob.get_val("t_start"))
-print("Times :", prob.get_val("ts"))
-print("Earth-Mars Leg delta-v :", prob.get_val("delta_v1"))
-print("Earth-Mars Fuel Burn", prob.get_val("F1"))
-print("Mars-Earth Leg delta-v :", prob.get_val("delta_v2"))
-print("Mars-Earth Fuel Burn", prob.get_val("F2"))
-
-print("EDB: ", prob.get_val('EDB'))
-print("MAB: ", prob.get_val('MAB'))
-print("MDB: ", prob.get_val('MDB'))
-print("EAB: ", prob.get_val('EAB'))
-
-print("minumum objective")
-print(prob.get_val("F_total"))
 
 prob.model.set_val("m_s",val=40000.0)
 prob.model.set_val("ts",val=np.array([240, 450, 270]))
 prob.model.set_val("t_start",val=604.0)
 
-prob.setup()
 prob.run_model()
 
 print("Initial Guess")
